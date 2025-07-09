@@ -1,13 +1,13 @@
 import streamlit as st
 import pandas as pd
+from streamlit_image_mapper import image_mapper
 
-# CSVファイルを読み込み（Shift-JIS対応）
+# CSV読み込み（Shift-JIS対応）
 df = pd.read_csv("data.csv", encoding="shift_jis")
 
-# タイトル
-st.title("センター5号館 3F 曜日別時間割")
+st.title("センター5号館 3F 曜日別・教室別時間割")
 
-# 曜日を日本語で表示するための変換
+# 曜日変換マップ
 day_mapping = {
     "Monday": "月",
     "Tuesday": "火",
@@ -15,24 +15,24 @@ day_mapping = {
     "Thursday": "木",
     "Friday": "金"
 }
-
-# 日本語の曜日リスト
 days_jp = ["月", "火", "水", "木", "金"]
 
-# ユーザーに曜日を選択させる
+# 曜日選択
 selected_day_jp = st.radio("曜日を選んでください", days_jp, horizontal=True)
-
-# 英語に逆変換（内部のデータと一致させるため）
 selected_day_en = [k for k, v in day_mapping.items() if v == selected_day_jp][0]
 
-# 選択された曜日の授業だけ抽出
-filtered = df[df["Day"] == selected_day_en]
+# --- ここから画像マップ（クリックで教室選択） --- #
+# 今は簡易的にselectboxで教室選択（後で画像クリックに置換可）
+rooms = df["Room"].unique()
+selected_room = st.selectbox("教室を選んでください", rooms)
 
-# 表示用に列を整える
+# --- 授業抽出 --- #
+filtered = df[(df["Day"] == selected_day_en) & (df["Room"] == selected_room)]
+
 if not filtered.empty:
-    display_df = filtered[["Room", "Class name", "Teacher", "Period"]]
+    display_df = filtered[["Room", "Class name", "Teacher", "Period"]].copy()
     display_df.columns = ["教室", "授業名", "担当教員", "時限"]
     display_df = display_df.sort_values("時限")
     st.table(display_df)
 else:
-    st.info(f"{selected_day_jp}曜日の授業は登録されていません。")
+    st.info(f"{selected_day_jp}曜日の{selected_room}の授業は登録されていません。")
