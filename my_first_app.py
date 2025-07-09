@@ -32,4 +32,7 @@ filtered = df[df["Day"] == selected_day_en]
 if not filtered.empty:
     display_df = filtered[["Room", "Class name", "Teacher", "Period"]]
     display_df.columns = ["教室", "授業名", "担当教員", "時限"]
-    display_df = displa_
+    display_df = display_df.sort_values("時限")
+    st.table(display_df)
+else:
+    st.info(f"{selected_day_jp}曜日の授業は登録されていません。")
